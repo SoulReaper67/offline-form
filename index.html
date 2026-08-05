@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>offline-form.js — Demo</title>
+  <meta name="description" content="Auto-save HTML forms with offline detection. Zero dependency, 2kb gzip.">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f0f0f7; min-height: 100vh; }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, #6c63ff 0%, #3b39b0 100%);
+      color: #fff; text-align: center; padding: 60px 20px 80px;
+    }
+    .hero h1 { font-size: 36px; font-weight: 700; margin-bottom: 12px; }
+    .hero p  { font-size: 17px; opacity: .85; margin-bottom: 28px; }
+    .badges  { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .badges a {
+      background: rgba(255,255,255,.15); color: #fff;
+      padding: 6px 14px; border-radius: 20px; font-size: 13px;
+      text-decoration: none; border: 1px solid rgba(255,255,255,.3);
+      transition: background .2s;
+    }
+    .badges a:hover { background: rgba(255,255,255,.25); }
+
+    /* Install */
+    .install-bar {
+      background: #1e1e2e; color: #a9dc76; font-family: monospace;
+      font-size: 15px; padding: 16px 24px; text-align: center;
+      letter-spacing: .5px;
+    }
+
+    /* Layout */
+    .container { max-width: 960px; margin: 0 auto; padding: 40px 20px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+
+    /* Cards */
+    .card {
+      background: #fff; border-radius: 14px; padding: 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.07);
+    }
+    .card h2 { font-size: 17px; margin-bottom: 16px; color: #333; }
+
+    /* Code block */
+    .code {
+      background: #1e1e2e; border-radius: 10px;
+      padding: 20px; font-family: monospace; font-size: 13px;
+      line-height: 1.7; color: #cdd6f4; margin-bottom: 24px;
+      overflow-x: auto;
+    }
+    .code .kw  { color: #cba6f7; }
+    .code .fn  { color: #89b4fa; }
+    .code .str { color: #a6e3a1; }
+    .code .cm  { color: #6c7086; }
+
+    /* Network bar */
+    .network-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border-radius: 8px; font-size: 13px;
+      margin-bottom: 16px; transition: all .3s;
+    }
+    .network-bar.online  { background: #e8f5e9; color: #2e7d32; }
+    .network-bar.offline { background: #fdecea; color: #c0392b; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .online .dot  { background: #27ae60; }
+    .offline .dot { background: #c0392b; animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    /* Form */
+    label { display: block; font-size: 13px; font-weight: 500; color: #555; margin-bottom: 4px; margin-top: 12px; }
+    input, textarea, select {
+      width: 100%; padding: 9px 11px; border: 1px solid #ddd;
+      border-radius: 8px; font-size: 14px; outline: none; transition: border-color .2s;
+      font-family: inherit;
+    }
+    input:focus, textarea:focus, select:focus { border-color: #6c63ff; }
+    textarea { resize: vertical; min-height: 70px; }
+    .row { display: flex; gap: 10px; }
+    .row > div { flex: 1; }
+    .check-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+    .check-row input { width: auto; }
+    .option-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; background: #f8f8ff; border-radius: 8px;
+      margin-top: 12px; font-size: 13px; color: #444;
+    }
+    .toggle { position: relative; width: 36px; height: 20px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; inset: 0; background: #ccc;
+      border-radius: 20px; cursor: pointer; transition: .3s;
+    }
+    .slider:before {
+      content: ''; position: absolute; width: 14px; height: 14px;
+      left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .3s;
+    }
+    input:checked + .slider { background: #6c63ff; }
+    input:checked + .slider:before { transform: translateX(16px); }
+
+    button {
+      margin-top: 14px; width: 100%; padding: 11px;
+      background: #6c63ff; color: #fff; border: none;
+      border-radius: 8px; font-size: 14px; cursor: pointer; transition: background .2s;
+    }
+    button:hover { background: #5a52d5; }
+
+    /* Log */
+    #log {
+      background: #f8f8f8; border-radius: 8px; padding: 12px;
+      font-size: 12px; font-family: monospace; color: #444;
+      max-height: 140px; overflow-y: auto; margin-top: 14px;
+    }
+
+    /* Features */
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+    @media (max-width: 700px) { .features { grid-template-columns: 1fr; } }
+    .feature {
+      background: #fff; border-radius: 12px; padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06); text-align: center;
+    }
+    .feature .icon { font-size: 28px; margin-bottom: 8px; }
+    .feature h3 { font-size: 14px; font-weight: 600; margin-bottom: 4px; color: #333; }
+    .feature p  { font-size: 12px; color: #888; line-height: 1.5; }
+
+    .hint { font-size: 12px; color: #aaa; text-align: center; margin-top: 8px; }
+    .section-title { font-size: 22px; font-weight: 700; color: #333; margin-bottom: 20px; }
+
+    /* Footer */
+    footer {
+      text-align: center; padding: 32px 20px;
+      font-size: 13px; color: #aaa;
+    }
+    footer a { color: #6c63ff; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <h1>offline-form.js</h1>
+  <p>Auto-save any HTML form. Restore on reload. Retry on reconnect.<br>2 lines of code. Zero dependency.</p>
+  <div class="badges">
+    <a href="https://www.npmjs.com/package/offline-form" target="_blank">📦 npm v0.2.2</a>
+    <a href="https://github.com/SoulReaper67/offline-form" target="_blank">⭐ GitHub</a>
+    <a href="https://github.com/SoulReaper67/offline-form/blob/main/README.md" target="_blank">📖 Docs</a>
+  </div>
+</div>
+
+<!-- Install bar -->
+<div class="install-bar">npm install offline-form</div>
+
+<div class="container">
+
+  <!-- Features -->
+  <div class="features">
+    <div class="feature">
+      <div class="icon">💾</div>
+      <h3>Auto-save</h3>
+      <p>Every keystroke saved automatically with debounce</p>
+    </div>
+    <div class="feature">
+      <div class="icon">🔄</div>
+      <h3>Auto-restore</h3>
+      <p>Data restored silently on page reload or crash</p>
+    </div>
+    <div class="feature">
+      <div class="icon">📶</div>
+      <h3>Offline retry</h3>
+      <p>Submit queued and retried automatically on reconnect</p>
+    </div>
+  </div>
+
+  <!-- Grid : code + démo -->
+  <div class="grid">
+
+    <!-- Code -->
+    <div class="card">
+      <h2>⚡ Quick start</h2>
+      <div class="code">
+<span class="cm">// Install</span>
+<span class="cm">// npm install offline-form</span>
+
+<span class="kw">import</span> OfflineForm <span class="kw">from</span> <span class="str">'offline-form'</span>
+
+<span class="cm">// That's it 👇</span>
+OfflineForm.<span class="fn">watch</span>(<span class="str">'#my-form'</span>)
+
+<span class="cm">// With options</span>
+OfflineForm.<span class="fn">watch</span>(<span class="str">'#my-form'</span>, {
+  debounce:   <span class="str">800</span>,
+  autoSubmit: <span class="kw">true</span>,
+  toast:      <span class="kw">true</span>,
+  <span class="fn">onRestore</span>: (data) <span class="kw">=></span> {},
+  <span class="fn">onSave</span>:    (data) <span class="kw">=></span> {},
+})
+      </div>
+
+      <h2>🧪 Live demo</h2>
+      <div class="network-bar online" id="network-bar">
+        <div class="dot"></div>
+        <span id="network-label">Online</span>
+      </div>
+
+      <form id="demo-form" action="/api/submit" method="POST">
+        <div class="row">
+          <div>
+            <label>First name</label>
+            <input type="text" name="prenom" placeholder="Alice">
+          </div>
+          <div>
+            <label>Last name</label>
+            <input type="text" name="nom" placeholder="Martin">
+          </div>
+        </div>
+        <label>Email</label>
+        <input type="email" name="email" placeholder="alice@example.com">
+        <label>Country</label>
+        <select name="pays">
+          <option value="">— Select —</option>
+          <option value="fr">France</option>
+          <option value="be">Belgium</option>
+          <option value="gb">UK</option>
+          <option value="us">USA</option>
+        </select>
+        <label>Message</label>
+        <textarea name="message" placeholder="Your message..."></textarea>
+        <div class="check-row">
+          <input type="checkbox" name="cgu" id="cgu">
+          <label for="cgu" style="margin:0">I accept the terms</label>
+        </div>
+        <div class="option-row">
+          <span>🔄 Auto-submit on reconnect</span>
+          <label class="toggle">
+            <input type="checkbox" id="auto-toggle" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <button type="submit">Submit</button>
+      </form>
+
+      <p class="hint">💡 To test offline: DevTools → Network → Offline</p>
+      <div id="log">Waiting...</div>
+    </div>
+
+    <!-- Right col : features détail + options -->
+    <div>
+      <div class="card" style="margin-bottom:24px">
+        <h2>📋 All options</h2>
+        <div class="code" style="font-size:12px">
+OfflineForm.<span class="fn">watch</span>(selector, {
+  debounce:   <span class="str">800</span>,    <span class="cm">// ms</span>
+  key:        <span class="str">'my-key'</span>, <span class="cm">// storage key</span>
+  toast:      <span class="kw">true</span>,   <span class="cm">// restore toast</span>
+  autoSubmit: <span class="kw">false</span>,  <span class="cm">// retry on reconnect</span>
+  <span class="fn">onSave</span>:    (data) <span class="kw">=></span> {},
+  <span class="fn">onRestore</span>: (data) <span class="kw">=></span> {},
+  <span class="fn">onRetry</span>:   (item) <span class="kw">=></span> {},
+})
+
+<span class="cm">// Methods</span>
+OfflineForm.<span class="fn">unwatch</span>(<span class="str">'#form'</span>)
+OfflineForm.<span class="fn">clear</span>(<span class="str">'#form'</span>)
+OfflineForm.<span class="fn">getAll</span>()
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:24px">
+        <h2>⚛️ React</h2>
+        <div class="code" style="font-size:12px">
+<span class="kw">import</span> OfflineForm <span class="kw">from</span> <span class="str">'offline-form'</span>
+<span class="kw">import</span> { useEffect } <span class="kw">from</span> <span class="str">'react'</span>
+
+<span class="kw">function</span> <span class="fn">ContactForm</span>() {
+  <span class="fn">useEffect</span>(() <span class="kw">=></span> {
+    OfflineForm.<span class="fn">watch</span>(<span class="str">'#contact'</span>)
+    <span class="kw">return</span> () <span class="kw">=></span>
+      OfflineForm.<span class="fn">unwatch</span>(<span class="str">'#contact'</span>)
+  }, [])
+  <span class="kw">return</span> &lt;<span class="fn">form</span> id=<span class="str">"contact"</span>&gt;...&lt;/<span class="fn">form</span>&gt;
+}
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>✅ Field support</h2>
+        <div style="font-size:13px;line-height:2;color:#555">
+          ✅ text, email, tel, url, number<br>
+          ✅ textarea<br>
+          ✅ select<br>
+          ✅ checkbox<br>
+          ✅ radio<br>
+          ❌ file (not serializable)
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Made with ☕ by <a href="https://github.com/SoulReaper67" target="_blank">TwinsMi Studio</a>
+  · <a href="https://github.com/SoulReaper67/offline-form" target="_blank">GitHub</a>
+  · <a href="https://www.npmjs.com/package/offline-form" target="_blank">npm</a>
+  · MIT License
+</footer>
+
+<script type="module">
+  import OfflineForm from 'https://cdn.jsdelivr.net/npm/offline-form@0.2.2/src/offline-form.js'
+
+  const log   = document.getElementById('log')
+  const bar   = document.getElementById('network-bar')
+  const label = document.getElementById('network-label')
+
+  const addLog = (msg) => {
+    const line = document.createElement('div')
+    line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`
+    log.prepend(line)
+  }
+
+  function updateNetworkUI() {
+    const online = navigator.onLine
+    bar.className = `network-bar ${online ? 'online' : 'offline'}`
+    label.textContent = online ? 'Online' : 'Offline'
+  }
+
+  window.addEventListener('online',  () => { updateNetworkUI(); addLog('🟢 Back online') })
+  window.addEventListener('offline', () => { updateNetworkUI(); addLog('🔴 Connection lost') })
+  updateNetworkUI()
+
+  const autoToggle = document.getElementById('auto-toggle')
+
+  OfflineForm.watch('#demo-form', {
+    debounce:   600,
+    toast:      true,
+    autoSubmit: autoToggle.checked,
+    onSave:    (data) => addLog(`💾 Saved — ${Object.keys(data).length} fields`),
+    onRestore: (data) => addLog(`✅ Restored — ${Object.keys(data).length} fields`),
+    onRetry:   (item) => addLog(`🔄 Retrying ${item.action}`)
+  })
+
+  autoToggle.addEventListener('change', () => {
+    addLog(`⚙️ autoSubmit → ${autoToggle.checked ? 'on' : 'off'}`)
+    setTimeout(() => location.reload(), 800)
+  })
+
+  document.getElementById('demo-form').addEventListener('submit', (e) => {
+    if (navigator.onLine) {
+      e.preventDefault()
+      addLog('📤 Submitted — cache cleared')
+    }
+  })
+</script>
+</body>
+</html>
