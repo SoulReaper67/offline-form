@@ -12,14 +12,21 @@
     }
   },
   "keywords": [
-    "form", "offline", "autosave", "restore", "retry",
-    "localStorage", "pwa", "zero-dependency", "form-persistence"
+    "form",
+    "offline",
+    "autosave",
+    "restore",
+    "retry",
+    "localStorage",
+    "pwa",
+    "zero-dependency",
+    "form-persistence"
   ],
   "author": "TwinsMi Studio <contact@twinsmi.studio>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/soulreaper67/offline-form"
+    "url": "git+https://github.com/soulreaper67/offline-form.git"
   },
   "bugs": {
     "url": "https://github.com/soulreaper67/offline-form/issues"
