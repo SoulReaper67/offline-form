@@ -1,0 +1,34 @@
+{
+  "name": "offline-form",
+  "version": "0.2.0",
+  "description": "Auto-save HTML forms with offline detection and retry queue. Zero dependency, < 3kb gzip.",
+  "main": "src/offline-form.js",
+  "module": "src/offline-form.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/offline-form.js",
+      "default": "./src/offline-form.js"
+    }
+  },
+  "keywords": [
+    "form", "offline", "autosave", "restore", "retry",
+    "localStorage", "pwa", "zero-dependency", "form-persistence"
+  ],
+  "author": "TwinsMi Studio <contact@twinsmi.studio>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/soulreaper67/offline-form"
+  },
+  "bugs": {
+    "url": "https://github.com/soulreaper67/offline-form/issues"
+  },
+  "homepage": "https://github.com/soulreaper67/offline-form#readme",
+  "files": [
+    "src/offline-form.js",
+    "src/offline-form.min.js",
+    "README.md",
+    "LICENSE"
+  ]
+}
