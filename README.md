@@ -180,4 +180,4 @@ All modern browsers. No polyfill needed.
 
 ## License
 
-MIT © [TwinsMi Studio](https://github.com/soulreaper67)
+MIT © [TwinMi Studio](https://github.com/soulreaper67)
