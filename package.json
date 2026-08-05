@@ -1,6 +1,6 @@
 {
   "name": "offline-form",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Auto-save HTML forms with offline detection and retry queue. Zero dependency, < 3kb gzip.",
   "main": "src/offline-form.js",
   "module": "src/offline-form.js",
